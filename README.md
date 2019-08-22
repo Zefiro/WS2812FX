@@ -8,7 +8,7 @@ This library features a variety of blinken effects for the WS2811/WS2812/NeoPixe
 Features
 --------
 
-* 53 different effects. And counting.
+* 55 different effects. And counting.
 * Tested on Arduino Nano, Uno, Micro and ESP8266.
 * All effects with printable names - easy to use in user interfaces.
 * FX, speed and brightness controllable on the fly.
@@ -17,6 +17,8 @@ Features
 
 Download, Install and Example
 -----------------------------
+
+[![arduino-library-badge](https://www.ardu-badge.com/badge/WS2812FX.svg)](https://www.ardu-badge.com/WS2812FX)
 
 You can **search for WS2812FX in the Arduino IDE Library Manager** or install the latest (or development) version manually:
 
@@ -78,7 +80,7 @@ Effects
 6. **Color Wipe Reverse Inverse** - Same as Color Wipe Reverse, except swaps on/off colors.
 7. **Color Wipe Random** - Turns all LEDs after each other to a random color. Then starts over with another color.
 8. **Random Color** - Lights all LEDs in one random color up. Then switches them to the next random color.
-9. **Single Dynamic** - Lights every LED in a random color. Changes one random LED after the other to another random color.
+9. **Single Dynamic** - Lights every LED in a random color. Changes one random LED after the other to a random color.
 10. **Multi Dynamic** - Lights every LED in a random color. Changes all LED at the same time to new random colors.
 11. **Rainbow** - Cycles all LEDs at once through a rainbow.
 12. **Rainbow Cycle** - Cycles a rainbow over the entire string of LEDs.
@@ -125,7 +127,10 @@ Effects
 53. **Bicolor Chase** - Two LEDs running on a background color (set three colors).
 54. **Tricolor Chase** - Alternating three color pixels running (set three colors).
 55. **ICU** - Two eyes looking around.
-56. **Custom** - User created custom effect. 
+56. **Custom** - Up to four user created custom effects.
+57. **Custom**
+58. **Custom**
+59. **Custom**
 
 Projects using WS2812FX
 -----------------------

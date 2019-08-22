@@ -1,5 +1,8 @@
 /*
-  Demo sketch for creating custom effects.
+  Custom effect that creates two Larson scanners moving in opposite directions.
+  If you set the REVERSE option, an offset will be added to the comet after each
+  cycle (so if the LEDs are arranged in a circle, the animation will appear to
+  "walk" around the circle.)
   
   Keith Lord - 2018
 
@@ -31,42 +34,34 @@
   2018-02-26 initial version
 */
 
+#ifndef DualLarson_h
+#define DualLarson_h
+
 #include <WS2812FX.h>
 
-#define LED_COUNT 30
-#define LED_PIN 5
+extern WS2812FX ws2812fx;
 
-WS2812FX ws2812fx = WS2812FX(LED_COUNT, LED_PIN, NEO_GRB + NEO_KHZ800);
-
-void setup() {
-  Serial.begin(115200);
-  
-  ws2812fx.init();
-  ws2812fx.setBrightness(255);
-
-  // segment 0 is the builtin comet effect
-  ws2812fx.setSegment(0, 0,           LED_COUNT/2 - 1, FX_MODE_COMET,  RED, 1000, false);
-
-  // segment 1 is our custom effect
-  ws2812fx.setCustomMode(myCustomEffect);
-  ws2812fx.setSegment(1, LED_COUNT/2, LED_COUNT - 1,   FX_MODE_CUSTOM, RED, 50, false);
-
-  ws2812fx.start();
-}
-
-void loop() {
-  ws2812fx.service();
-}
-
-uint16_t myCustomEffect(void) { // random chase
+uint16_t dualLarson(void) {
   WS2812FX::Segment* seg = ws2812fx.getSegment(); // get the current segment
-  for(uint16_t i=seg->stop; i>seg->start; i--) {
-    ws2812fx.setPixelColor(i, ws2812fx.getPixelColor(i-1));
+  WS2812FX::Segment_runtime* segrt = ws2812fx.getSegmentRuntime();
+  int seglen = seg->stop - seg->start + 1;
+
+  static int16_t offset = 0;
+  int8_t dir = segrt->aux_param ? -1 : 1;
+  segrt->aux_param3 += dir;
+
+  ws2812fx.fade_out();
+
+  int16_t segIndex = (segrt->aux_param3 + offset) % seglen;
+  ws2812fx.setPixelColor(seg->start + segIndex, seg->colors[0]);
+  ws2812fx.setPixelColor(seg->stop  - segIndex, seg->colors[2]);
+
+  if(segrt->aux_param3 >= (seg->stop - seg->start) || segrt->aux_param3 <= 0) {
+    segrt->aux_param = !segrt->aux_param;
+    if(seg->options & REVERSE) offset = (offset + 1) % seglen;
   }
-  uint32_t color = ws2812fx.getPixelColor(seg->start + 1);
-  int r = random(6) != 0 ? (color >> 16 & 0xFF) : random(256);
-  int g = random(6) != 0 ? (color >> 8  & 0xFF) : random(256);
-  int b = random(6) != 0 ? (color       & 0xFF) : random(256);
-  ws2812fx.setPixelColor(seg->start, r, g, b);
-  return seg->speed; // return the delay until the next animation step (in msec)
+
+  return (seg->speed / (seglen * 2));
 }
+
+#endif

@@ -1,5 +1,11 @@
 /*
-  Demo sketch for creating custom effects.
+  Custom effect that combines the fireworks effect and running effect
+  to produce a rain-like effect. Depending on the size of your LED strip, you
+  may want to play with the FADE and SIZE options.
+  The background color is black, unless you use a FADE_RATE other then DEFAULT,
+  in which case the background color is color[1].
+  The color of the rain is either color[0] or color[2] (chosen randomly), unless
+  color[0]==color[1], in which case the rain is a random color.
   
   Keith Lord - 2018
 
@@ -28,45 +34,33 @@
   THE SOFTWARE.
   
   CHANGELOG
-  2018-02-26 initial version
+  2018-12-14 initial version
 */
+
+#ifndef Rain_h
+#define Rain_h
 
 #include <WS2812FX.h>
 
-#define LED_COUNT 30
-#define LED_PIN 5
+extern WS2812FX ws2812fx;
 
-WS2812FX ws2812fx = WS2812FX(LED_COUNT, LED_PIN, NEO_GRB + NEO_KHZ800);
-
-void setup() {
-  Serial.begin(115200);
-  
-  ws2812fx.init();
-  ws2812fx.setBrightness(255);
-
-  // segment 0 is the builtin comet effect
-  ws2812fx.setSegment(0, 0,           LED_COUNT/2 - 1, FX_MODE_COMET,  RED, 1000, false);
-
-  // segment 1 is our custom effect
-  ws2812fx.setCustomMode(myCustomEffect);
-  ws2812fx.setSegment(1, LED_COUNT/2, LED_COUNT - 1,   FX_MODE_CUSTOM, RED, 50, false);
-
-  ws2812fx.start();
-}
-
-void loop() {
-  ws2812fx.service();
-}
-
-uint16_t myCustomEffect(void) { // random chase
+uint16_t rain(void) {
   WS2812FX::Segment* seg = ws2812fx.getSegment(); // get the current segment
-  for(uint16_t i=seg->stop; i>seg->start; i--) {
-    ws2812fx.setPixelColor(i, ws2812fx.getPixelColor(i-1));
+  uint16_t seglen = seg->stop - seg->start + 1;
+  uint32_t rainColor = (ws2812fx.random8() & 1) == 0 ? seg->colors[0] : seg->colors[2];
+  if(seg->colors[0] == seg->colors[1]) rainColor = ws2812fx.color_wheel(ws2812fx.random8());
+
+  ws2812fx.fireworks(rainColor);
+
+  // shift everything two pixels
+  bool isReverse = (seg->options & REVERSE) != 0;
+  if(isReverse) {
+    ws2812fx.copyPixels(seg->start + 2, seg->start, seglen - 2);
+  } else {
+    ws2812fx.copyPixels(seg->start, seg->start + 2, seglen - 2);
   }
-  uint32_t color = ws2812fx.getPixelColor(seg->start + 1);
-  int r = random(6) != 0 ? (color >> 16 & 0xFF) : random(256);
-  int g = random(6) != 0 ? (color >> 8  & 0xFF) : random(256);
-  int b = random(6) != 0 ? (color       & 0xFF) : random(256);
-  ws2812fx.setPixelColor(seg->start, r, g, b);
-  return seg->speed; // return the delay until the next animation step (in msec)
+
+  return(seg->speed / seglen);
 }
+
+#endif
